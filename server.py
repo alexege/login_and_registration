@@ -21,18 +21,28 @@ def register():
     if len(request.form['first_name']) < 1:
         is_valid = False
         flash("Please insert a First Name")
+    else:
+        flash('')
     if len(request.form['last_name']) < 1:
         is_valid = False
         flash("Please insert a Last Name")
+    else:
+        flash('')
     if not EMAIL_REGEX.match(request.form['email']):
         is_valid = False
         flash("Please insert an email address")
-    # if len(request.form['password']) < 1:
-    #     is_valid = False
-    #     flash("Please insert a password")
-    # if len(request.form['confirmation_password']) < 1:
-    #     is_valid = False
-    #     flash("Please insert a password")
+    else:
+        flash('')
+    if len(request.form['password']) < 1:
+        is_valid = False
+        flash("Please insert a password")
+    else:
+        flash('')
+    if len(request.form['confirmation_password']) < 1:
+        is_valid = False
+        flash("Please insert a password")
+    else:
+        flash('')
 
     if not is_valid:
         return redirect('/')
@@ -68,13 +78,28 @@ def successful_login():
 
 @app.route('/login', methods=["POST"])
 def login():
+    is_valid = True
+    if not EMAIL_REGEX.match(request.form['email']):
+        is_valid = False
+        flash("Please insert a valid email address")
+    else:
+        flash('')
+    if len(request.form['password']) < 1:
+        is_valid = False
+        flash("Please insert a valid password")
+    else:
+        flash('')
+    if not is_valid:
+        return redirect('/')
     mysql = connectToMySQL('login_and_registration')
-    query = 'SELECT id, password FROM users WHERE email = %(em)s';
+    query = 'SELECT id, password FROM users WHERE email = %(em)s;'
     data = {
         'em' : request.form['email']
     }
     user_id = mysql.query_db(query, data)  
-    print(user_id)
+    print("--user_id-- : " + str(user_id))
+    print("user key: " + str(session[USER_KEY]))
+    print("user_id[0]['password']" + str(user_id[0]['password']))
     string_password = request.form['password']  
     if bcrypt.check_password_hash(user_id[0]['password'], string_password):
         session[USER_KEY] = user_id[0]['id']
@@ -82,6 +107,8 @@ def login():
 
 @app.route('/logout')
 def logout():
+    if session[USER_KEY]:
+        session.clear()
     return redirect('/')
 
 if __name__=="__main__":
